@@ -1,13 +1,17 @@
 <template>
   <div id="app"
        @mousedown="onmousedown"
-       @mouseup="onmouseup">
+       @mouseup="onmouseup"
+       @mouseover="onmouseover"
+  >
     <div v-for="i in 20" :key="i">
       <mc-cell
           v-for="j in 20"
           :key="i + 'x' + j"
           :index="i + 'x' + j"
-          :id="i + 'x' + j"/>
+          :id="i + 'x' + j"
+
+      />
     </div>
   </div>
 </template>
@@ -27,19 +31,46 @@
 
     data() {
       return {
-        mouseDownCell: ''
+        mouseDownCell: '',
+        lastHoveredCell: ''
       }
     },
 
     methods: {
       onmousedown(e) {
-        this.mouseDownCell = e.path[1].id;
+        if (!this.$store.getters.isFirstMatrixSaved || !this.$store.getters.isSecondMatrixSaved) {
+          this.mouseDownCell = e.path[1].id;
+          this.lastHoveredCell = e.path[1].id;
+        }
       },
 
       onmouseup(e) {
-        console.log('UPSUKA');
-        this.$store.commit('UPDATE_MATRIX', {firstCell: this.mouseDownCell, secondCell: e.path[1].id});
-        this.mouseDownCell = '';
+        if (this.mouseDownCell !== '') {
+          if (this.lastHoveredCell === this.mouseDownCell) {
+            this.$store.commit('CLEAR_TEMP_MATRIX', {lastCell: this.lastHoveredCell});
+            this.mouseDownCell = '';
+            return;
+          }
+
+          this.$store.commit('SAVE_MATRIX', {firstCell: this.mouseDownCell, secondCell: e.path[1].id});
+          this.mouseDownCell = '';
+        }
+      },
+
+      onmouseover(e) {
+        if (this.mouseDownCell === '') {
+          return 0;
+        }
+
+        if (e.path[1].id === 'app') {
+          return 0;
+        }
+
+        if (e.path[1].id !== this.lastHoveredCell) {
+          this.lastHoveredCell = e.path[1].id;
+          this.$store.commit('UPDATE_MATRIX',
+              {firstCell: this.mouseDownCell, secondCell: this.lastHoveredCell});
+        }
       }
     }
   }

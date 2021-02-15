@@ -12,6 +12,10 @@ const store = new Vuex.Store({
     cells: {},
     firstMatrix: [],
     secondMatrix: [],
+    isFirstMatrixSaved: false,
+    isSecondMatrixSaved: false,
+    firstMatrixLastCell: '',
+    secondMatrixLastCell: ''
   },
   mutations: mutations,
   getters: getters
