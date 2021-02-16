@@ -3,12 +3,20 @@
        :class="[{
          'first-matrix': isInFirstMatrix,
        'second-matrix': isInSecondMatrix,
+       'result-matrix': isInResultMatrix
        }]">
     <input
         class="mc-cell__input"
         v-model="value"
+        @keypress="inputCheck"
     />
-    <div class="mc-cell__clear" v-if="lastCell" @click="clearMatrix">X</div>
+    <div :class="[{
+      'mc-cell__clear-bottom': isBottomClear,
+      'mc-cell__clear-top': !isBottomClear
+    }]"
+         v-if="lastCell"
+         @click="clearMatrix">X
+    </div>
   </div>
 </template>
 
@@ -25,13 +33,8 @@
 
     computed: {
       lastCell() {
-        if (this.$store.getters.isInFirstMatrix(this.index)) {
-          return this.$store.getters.getFirstMatrixLastCell === this.index;
-        } else if (this.$store.getters.isInSecondMatrix(this.index)){
-          return this.$store.getters.getSecondMatrixLastCell === this.index;
-        } else {
-          return false;
-        }
+        return this.$store.getters.getFirstMatrixLastCell === this.index ||
+            this.$store.getters.getSecondMatrixLastCell === this.index
       },
 
       value: {
@@ -50,13 +53,39 @@
 
       isInSecondMatrix() {
         return this.$store.getters.isInSecondMatrix(this.index);
+      },
+
+      isInResultMatrix() {
+        return this.$store.getters.isInResultMatrix(this.index);
+      },
+
+      isBottomClear() {
+        if (this.$store.getters.getFirstMatrixLastCell === this.index) {
+          return this.$store.getters.getFirstMatrixIsBottomClear
+        } else if (this.$store.getters.getSecondMatrixLastCell === this.index) {
+          return this.$store.getters.getSecondMatrixIsBottomClear;
+        } else {
+          return false;
+        }
       }
     },
 
     methods: {
       clearMatrix() {
-        console.log('here');
         this.$store.commit('CLEAR_MATRIX', {lastCell: this.index});
+      },
+
+      inputCheck(e) {
+        if (this.value.length >= 5) e.preventDefault();
+        if (e.key === 'Backspace' || e.key === 'Delete') {
+          return true;
+        }
+        if ((e.keyCode < 48 || e.keyCode > 57) && e.keyCode !== 46 && e.keyCode !== 45) {
+          e.preventDefault();
+        }
+        if (e.key === '.' && this.value.includes('.')) e.preventDefault();
+        if (e.key === '-' && this.value.includes('-')) e.preventDefault();
+
       }
     }
   }
@@ -74,23 +103,32 @@
     width: 4vw;
     height: 4vh;
 
-    border: 1px solid black;
-    border-radius: 0;
+    background-color: #F4EDED;
+
+    font-family: "Droid Sans Mono", Monospaced, monospace;
+    font-size: calc(0.7vh + 0.7vw);
+    text-align: center;
+    user-select: none;
+  }
+
+  .result-matrix input {
+    background-color: #6096BA;
   }
 
   .first-matrix input {
-    background-color: rgba(46, 148, 247, 50);
+    background-color: #1DD3B0;
   }
 
   .second-matrix input {
-    background-color: rgba(3, 199, 22, 50);
+    background-color: #EF8354;
   }
 
   .first-matrix.second-matrix input {
-    background-color: #2c5e9f;
+    /*background-color: #849960;*/
+    background-color: #A3A075;
   }
 
-  .mc-cell__clear {
+  .mc-cell__clear-bottom {
     font-family: "Droid Sans Mono", Monospaced, monospace;
     font-weight: bold;
 
@@ -106,6 +144,29 @@
     color: white;
     background-color: red;
     border-radius: 15px;
+    user-select: none;
   }
 
+  .mc-cell__clear-top {
+    font-family: "Droid Sans Mono", Monospaced, monospace;
+    font-weight: bold;
+
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    z-index: 99;
+
+    height: 2vh;
+    width: 2vw;
+
+    line-height: 2vh;
+    color: white;
+    background-color: red;
+    border-radius: 15px;
+    user-select: none;
+  }
+
+  .mc-cell__input:focus {
+    outline: none;
+  }
 </style>
